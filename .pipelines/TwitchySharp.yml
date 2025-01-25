@@ -4,7 +4,7 @@ variables:
 - name: Project.Path
   value: '**/TwitchySharp.Api.csproj'
 - name: Project.Test
-  value: '**/TwitchySharp.Api.Test.csproj'
+  value: '**/TwitchySharp.Test.csproj'
 - name: BuildConfiguration
   value: Release
 trigger:
