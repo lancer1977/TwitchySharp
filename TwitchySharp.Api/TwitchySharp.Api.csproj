@@ -7,14 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <EditorConfigFiles Remove="C:\Users\Tom\source\repos\TwitchySharp\TwitchySharp.Api\.editorconfig" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Include="C:\Users\Tom\source\repos\TwitchySharp\TwitchySharp.Api\.editorconfig" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="8.1.2" />
     <PackageReference Include="Minerals.StringCases" Version="0.2.1" />
     <PackageReference Include="System.Text.Json" Version="8.0.5" />
