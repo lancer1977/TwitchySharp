@@ -33,12 +33,12 @@ jobs:
     inputs:
       summaryFileLocation: '$(Agent.TempDirectory)/**/*cobertura.xml'
       #coverage.opencover.xml
-      pathToSources: 'OAuth.Core'
+      pathToSources: 'TwitchySharp.Api'
       failIfCoverageEmpty: false  
   - task: PublishCodeCoverageResults@2
     inputs:
       summaryFileLocation: '$(Agent.TempDirectory)/**/*opencover.xml'
-      pathToSources: 'OAuth.Core'
+      pathToSources: 'TwitchySharp.Api'
       failIfCoverageEmpty: true  
   - task: DotNetCoreCLI@2
     inputs:
