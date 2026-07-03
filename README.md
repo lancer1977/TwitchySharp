@@ -1,5 +1,29 @@
 # TwitchySharp
 
+TwitchySharp is a .NET 8 Twitch API client library. It contains typed request and response models for Twitch authentication and Helix APIs, helper utilities for Twitch-specific serialization, and NUnit tests for the client surface.
+
+## Repository Layout
+
+- `TwitchySharp.Api/` - main Twitch API client library.
+- `TwitchySharp.Helpers/` - shared helper types and JSON converters.
+- `TwitchySharp.Test/` - NUnit test project.
+- `.pipelines/TwitchySharp.yml` - existing Azure Pipelines package/publish workflow.
+- `TwitchySharp.sln` - solution entrypoint.
+
+## Requirements
+
+- .NET SDK 8.x
+
+## Validation
+
+Run the repository validation entrypoint:
+
+```bash
+./scripts/validate.sh
+```
+
+The script restores, builds, and tests `TwitchySharp.sln` in Release configuration.
+
 ## Work In Progress
 
 ### Authentication API Models
