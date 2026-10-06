@@ -1,0 +1,8 @@
+src/TwitchySharp.Core/TwitchySharp.Core.csproj
+src/Api/TwitchySharp.Api/TwitchySharp.Api.csproj
+src/Api/TwitchySharp.Api.Authentication/TwitchySharp.Api.Authentication.csproj
+src/Api/TwitchySharp.Api.Helix/TwitchySharp.Api.Helix.csproj
+src/EventSub/TwitchySharp.EventSub/TwitchySharp.EventSub.csproj
+src/EventSub/TwitchySharp.EventSub.Webhooks/TwitchySharp.EventSub.Webhooks.csproj
+src/EventSub/TwitchySharp.EventSub.Webhooks.AspNetCore/TwitchySharp.EventSub.Webhooks.AspNetCore.csproj
+src/EventSub/TwitchySharp.EventSub.Websocket/TwitchySharp.EventSub.Websocket.csproj

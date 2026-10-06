@@ -1,0 +1,26 @@
+<Project>
+  <PropertyGroup>
+    <PolyhydraPackageVersion Condition="'$(PolyhydraPackageVersion)' == ''">0.1.0-local</PolyhydraPackageVersion>
+
+    <PackageId>PolyhydraGames.$(MSBuildProjectName)</PackageId>
+    <PackageVersion>$(PolyhydraPackageVersion)</PackageVersion>
+    <Authors>Yoyoyopo5;Polyhydra Games</Authors>
+    <Copyright>Copyright (c) Yoyoyopo5 and TwitchySharp contributors</Copyright>
+    <Description>Fork build of TwitchySharp ($(MSBuildProjectName)) by Yoyoyopo5, published by Polyhydra Games until upstream ships its own packages. Upstream: https://github.com/Yoyoyopo5/TwitchySharp</Description>
+    <PackageTags>twitch;helix;eventsub;twitchysharp</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/Yoyoyopo5/TwitchySharp</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/lancer1977/TwitchySharp</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);CS1591</NoWarn>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)../README.md" Pack="true" PackagePath="/" Visible="false" />
+    <None Include="$(MSBuildThisFileDirectory)../LICENSE.txt" Pack="true" PackagePath="/" Visible="false" />
+  </ItemGroup>
+</Project>
