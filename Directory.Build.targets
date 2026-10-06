@@ -1,0 +1,7 @@
+<Project>
+  <!--
+    Polyhydra packaging overlay (fork-only file; lancer1977/TwitchySharp#1).
+    Inert unless PolyhydraPackaging=true, so normal builds match upstream exactly.
+  -->
+  <Import Project="eng/Polyhydra.Packaging.targets" Condition="'$(PolyhydraPackaging)' == 'true'" />
+</Project>
