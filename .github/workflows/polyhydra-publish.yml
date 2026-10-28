@@ -31,7 +31,7 @@ env:
 jobs:
   package:
     # Same-repository PRs only; fork PRs are skipped (no hosted fallback).
-    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    if: github.event_name != 'pull_request' || (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.user.login == github.repository_owner)
     runs-on: [self-hosted, Linux, X64, nuget-twitchysharp]
     timeout-minutes: 30
     outputs:
