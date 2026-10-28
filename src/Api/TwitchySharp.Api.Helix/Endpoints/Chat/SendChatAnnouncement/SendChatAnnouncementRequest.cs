@@ -1,3 +1,4 @@
+using TwitchySharp.Infrastructure.Functional;
 using System.Collections.Immutable;
 
 namespace TwitchySharp.Api.Helix.Chat;
@@ -53,8 +54,8 @@ public record SendChatAnnouncementRequest
     /// </summary>
     public required SendChatAnnouncementRequestData Announcement { get; init; }
 
-    public override Func<Stream, CancellationToken, ValueTask<SendChatAnnouncementResponseContent>>? ConvertResponseContent { get; init; }
-        = (_, _) => ValueTask.FromResult(new SendChatAnnouncementResponseContent());
+    public override ValueTask<TwitchResponse<SendChatAnnouncementResponseContent>> CreateResponse(HttpResponseMessage response, CancellationToken ct)
+        => EmptyResponse.Create<SendChatAnnouncementResponseContent>(response, ct);
 }
 
 /// <summary>
@@ -72,4 +73,21 @@ public record SendChatAnnouncementRequestData
     /// The color used to highlight the announcement.
     /// </summary>
     public required ChatAnnouncementColor Color { get; init; }
+    /// <summary>
+    /// Determines if the chat announcement is sent only to the source channel
+    /// (<c>BroadcasterId</c>) during a shared chat session.
+    /// </summary>
+    /// <remarks>
+    /// <para>
+    /// <b>NOTE:</b> This parameter can only be set when using prior authorization.
+    /// Using this option with a <see cref="UserAccessToken"/> will result in an HTTP 400 error.
+    /// </para>
+    /// <para>
+    /// The default value is <see langword="true"/>.
+    /// If you prefer to send an announcement to all channels in a shared chat session,
+    /// set this parameter to <see langword="false"/>.
+    /// </para>
+    /// This has no effect if the announcement is not sent during a shared chat session.
+    /// </remarks>
+    public bool? ForSourceOnly { get; init; }
 }
