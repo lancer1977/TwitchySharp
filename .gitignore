@@ -360,4 +360,4 @@ MigrationBackup/
 FodyWeavers.xsd
 
 # Claude Code
-.claude/
+.claude/StrykerOutput/
