@@ -1,8 +1,9 @@
 name: Polyhydra NuGet publish
 
 # Fork-only workflow (lancer1977/TwitchySharp#1).
-# Branch pushes and PRs: test + pack + verify on GitHub-hosted runners only.
-# A v* tag (e.g. v0.1.0-preview.1) additionally publishes to nuget.org from the
+# Branch pushes and PRs: test + pack + verify on the self-hosted validation
+# runner (nuget-twitchysharp). Fork PRs are skipped, never run on a hosted
+# fallback. A v* tag (e.g. v0.1.0-preview.1) additionally publishes to nuget.org from the
 # sky-catchy runner, which only receives the finished packages and never
 # checks out or executes repository code.
 
@@ -29,7 +30,9 @@ env:
 
 jobs:
   package:
-    runs-on: ubuntu-latest
+    # Same-repository PRs only; fork PRs are skipped (no hosted fallback).
+    if: github.event_name != 'pull_request' || github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: [self-hosted, Linux, X64, nuget-twitchysharp]
     timeout-minutes: 30
     outputs:
       package_version: ${{ steps.version.outputs.version }}

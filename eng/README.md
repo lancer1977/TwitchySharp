@@ -17,5 +17,18 @@ builds are identical to upstream.
 
 1. Sync upstream: `git fetch upstream && git switch master && git merge --ff-only upstream/master && git push origin master`, then merge `master` into `polyhydra/publish`.
 2. Tag and push: `git tag v0.1.0-preview.N && git push origin v0.1.0-preview.N`.
-3. `.github/workflows/polyhydra-publish.yml` tests and packs on GitHub-hosted runners, then the
+3. `.github/workflows/polyhydra-publish.yml` tests and packs on the validation runner, then the
    `nuget-twitchysharp-publish` runner on sky-catchy pushes to nuget.org with Trusted Publishing.
+
+## Runner split
+
+| Runner labels | Used by | Notes |
+| --- | --- | --- |
+| `self-hosted, Linux, X64, nuget-twitchysharp` | `package` job in `polyhydra-publish.yml`, `semgrep.yml` | Validation: checkout, tests, pack, verify, semgrep. Same-repository PRs only; fork PRs are skipped with no GitHub-hosted fallback. |
+| `self-hosted, nuget-twitchysharp-publish` | `publish-nuget-org` job (v* tags only) | Never checks out or runs repository code; receives finished packages via cache; OIDC Trusted Publishing. |
+
+The `nuget-twitchysharp` validation runner is not registered yet (separate approval-gated step);
+until it exists these jobs queue. `eng/test_workflows.py` (`python3 -I eng/test_workflows.py`)
+asserts no hosted labels remain, validation jobs carry the fork gate, and the publish job keeps its own label.
+
+`semgrep.yml` runs `p/default` + `p/security-audit` at ERROR severity (baseline = PR base commit) and uploads SARIF.
