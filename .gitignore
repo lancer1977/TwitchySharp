@@ -361,3 +361,4 @@ FodyWeavers.xsd
 
 # Claude Code
 .claude/
+StrykerOutput/
