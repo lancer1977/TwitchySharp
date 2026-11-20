@@ -1,0 +1,99 @@
+name: mutation
+
+# Weekly/manual Stryker.NET mutation testing (lancer1977/TwitchySharp#6).
+# Unit tests only: the test project for each source project is listed in the
+# matrix below. E2E and Integration projects (Twitch credentials) are never run.
+# Gate is report-only for now (thresholds.break = 0 in stryker-config.json).
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    - cron: "0 6 * * 1" # weekly, Monday 06:00 UTC
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_NOLOGO: true
+  DOTNET_CLI_TELEMETRY_OPTOUT: true
+  UseSharedCompilation: false # avoid VBCSCompiler server contention during Stryker builds
+
+jobs:
+  mutate:
+    name: mutate (${{ matrix.project }})
+    runs-on: [self-hosted, Linux, X64, nuget-twitchysharp]
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - project: Core
+            source: src/TwitchySharp.Core/TwitchySharp.Core.csproj
+            tests: tests/Unit/TwitchySharp.Core.Tests.Unit/TwitchySharp.Core.Tests.Unit.csproj
+          - project: Api
+            source: src/Api/TwitchySharp.Api/TwitchySharp.Api.csproj
+            tests: tests/Unit/Api/TwitchySharp.Api.Tests.Unit/TwitchySharp.Api.Tests.Unit.csproj
+          - project: Api.Authentication
+            source: src/Api/TwitchySharp.Api.Authentication/TwitchySharp.Api.Authentication.csproj
+            tests: tests/Unit/Api/TwitchySharp.Api.Authentication.Tests.Unit/TwitchySharp.Api.Authentication.Tests.Unit.csproj
+          - project: Api.Helix
+            source: src/Api/TwitchySharp.Api.Helix/TwitchySharp.Api.Helix.csproj
+            tests: tests/Unit/Api/TwitchySharp.Api.Helix.Tests.Unit/TwitchySharp.Api.Helix.Tests.Unit.csproj
+          - project: EventSub
+            source: src/EventSub/TwitchySharp.EventSub/TwitchySharp.EventSub.csproj
+            tests: tests/Unit/EventSub/TwitchySharp.EventSub.Tests.Unit/TwitchySharp.EventSub.Tests.Unit.csproj
+          - project: EventSub.Webhooks
+            source: src/EventSub/TwitchySharp.EventSub.Webhooks/TwitchySharp.EventSub.Webhooks.csproj
+            tests: tests/Unit/EventSub/TwitchySharp.EventSub.Webhooks.Tests.Unit/TwitchySharp.EventSub.Webhooks.Tests.Unit.csproj
+          - project: EventSub.Webhooks.AspNetCore
+            source: src/EventSub/TwitchySharp.EventSub.Webhooks.AspNetCore/TwitchySharp.EventSub.Webhooks.AspNetCore.csproj
+            tests: tests/Unit/EventSub/TwitchySharp.EventSub.Webhooks.AspNetCore.Tests.Unit/TwitchySharp.EventSub.Webhooks.AspNetCore.Tests.Unit.csproj
+          - project: EventSub.Websocket
+            source: src/EventSub/TwitchySharp.EventSub.Websocket/TwitchySharp.EventSub.Websocket.csproj
+            tests: tests/Unit/EventSub/TwitchySharp.EventSub.Websocket.Tests.Unit/TwitchySharp.EventSub.Websocket.Tests.Unit.csproj
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+      - uses: actions/setup-dotnet@67a3573c9a986a3f9c594539f4ab511d57bb3ce9 # v4.3.1
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Use nuget.org only
+        run: |
+          cat > NuGet.Config <<'NUGET'
+          <?xml version="1.0" encoding="utf-8"?>
+          <configuration>
+            <packageSources>
+              <clear />
+              <add key="nuget.org" value="https://api.nuget.org/v3/index.json" />
+            </packageSources>
+          </configuration>
+          NUGET
+
+      - name: Restore tools (pinned dotnet-stryker)
+        run: dotnet tool restore
+
+      - name: Restore unit test project
+        run: dotnet restore "${{ matrix.tests }}"
+
+      # Run from the unit test project directory, with no solution in scope: given the
+      # repo-root TwitchySharp.slnx Stryker would also run the E2E/Integration test
+      # projects that reference the source project (they need Twitch credentials).
+      # xunit.v3 projects need the Microsoft Testing Platform runner ("test-runner": "mtp"
+      # in stryker-config.json); with vstest, coverage capture fails and every mutant survives.
+      - name: Stryker
+        working-directory: ${{ github.workspace }}
+        run: |
+          set -euo pipefail
+          root="$GITHUB_WORKSPACE"
+          cd "$(dirname "${{ matrix.tests }}")"
+          dotnet tool run dotnet-stryker \
+            --config-file "$root/stryker-config.json" \
+            --project "$(basename "${{ matrix.source }}")" \
+            --output "$root/StrykerOutput/${{ matrix.project }}"
+
+      - if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: stryker-output-${{ matrix.project }}
+          path: StrykerOutput/**
+          if-no-files-found: warn
