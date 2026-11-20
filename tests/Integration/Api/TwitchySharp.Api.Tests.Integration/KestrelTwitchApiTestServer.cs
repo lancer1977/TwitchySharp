@@ -24,33 +24,35 @@ public class TestEndpointDataSource(IServiceProvider serviceProvider) : Endpoint
         public void Dispose()
             => dispose();
     }
-    private sealed class ChangeToken : IChangeToken
-    {
-        private readonly HashSet<(object?, Action<object?>)> _callbacks = [];
-        public bool ActiveChangeCallbacks => true;
-        public bool HasChanged { get; private set; }
-        public IDisposable RegisterChangeCallback(Action<object?> callback, object? state)
-        {
-            (object?, Action<object?>) registrant = (state, callback);
-            _callbacks.Add(registrant);
-            return new DelegateDisposable(() => _callbacks.Remove(registrant));
-        }
-        public void NotifyChanged()
-        {
-            HasChanged = true;
-            foreach ((object? state, Action<object?> callback) in _callbacks)
-            {
-                callback(state);
-            }
-        }
-    }
+
+    private readonly Lock _lock = new();
 
     private readonly Dictionary<string, Endpoint> _endpoints = [];
-    public override IReadOnlyList<Endpoint> Endpoints => [.. _endpoints.Values];
-    private readonly ChangeToken _changeToken = new();
-    public override IChangeToken GetChangeToken() => _changeToken;
-
-    private readonly SemaphoreSlim _sempahore = new(1, 1);
+    public override IReadOnlyList<Endpoint> Endpoints
+    {
+        get
+        {
+            lock (_lock)
+                return [.. _endpoints.Values];
+        }
+    }
+    public override IChangeToken GetChangeToken()
+    {
+        lock (_lock)
+            return new CancellationChangeToken(_cts.Token);
+    }
+    private CancellationTokenSource _cts = new();
+    private void NotifyChanged()
+    {
+        CancellationTokenSource oldCts;
+        lock (_lock)
+        {
+            oldCts = _cts;
+            _cts = new CancellationTokenSource();
+        }
+        oldCts.Cancel();
+        oldCts.Dispose();
+    }
     public IDisposable Map(HttpMethod method, string pattern, Delegate handler)
     {
         RouteEndpointBuilder endpointBuilder = new(
@@ -65,31 +67,26 @@ public class TestEndpointDataSource(IServiceProvider serviceProvider) : Endpoint
 
         Endpoint endpoint = endpointBuilder.Build();
 
-        _sempahore.Wait();
-        try
+        lock (_lock)
         {
             if (!_endpoints.TryAdd(pattern, endpoint))
                 throw new InvalidOperationException("Cannot add an endpoint that is already in use.");
+        }
 
-            _changeToken.NotifyChanged();
-            return new DelegateDisposable(() =>
-            {
-                _sempahore.Wait();
-                try
-                {
-                    _endpoints.Remove(pattern, out _);
-                    _changeToken.NotifyChanged();
-                }
-                finally
-                {
-                    _sempahore.Release();
-                }
-            });
-        }
-        finally
+        NotifyChanged();
+
+        return new DelegateDisposable(() =>
         {
-            _sempahore.Release();
-        }
+            bool removed;
+
+            lock (_lock)
+            {
+                removed = _endpoints.Remove(pattern);
+            }
+
+            if (removed)
+                NotifyChanged();
+        });
     }
 }
 
@@ -126,20 +123,7 @@ public class KestrelTwitchApiTestServer
             })))
             .AddTransient<TwitchClient>(sp => new TwitchClient()
                 .WithHttpClient(sp.GetRequiredService<HttpClient>())
-                .Configure<TwitchClient, HttpResponseMessage?>(next => (scope, ct) =>
-                    next(scope, ct).MatchAsync<HttpResponseMessage?, Result<HttpResponseMessage?>>(
-                        e =>
-                        {
-                            if (e is ExceptionError { Exception: TwitchApiException ex })
-                            {
-                                string id = Guid.CreateVersion7().ToString();
-                                TestContext.Current.AddAttachment($"ApiExceptionStatusCode-{id}", ex.StatusCode.ToString());
-                                TestContext.Current.AddAttachment($"ApiExceptionContent-{id}", ex.Content);
-                            }
-                            return e;
-                        },
-                        v => v
-                        ))
+                .UseMiddleware(new ErrorLoggingMiddleware())
             );
 
         WebApplication app = builder.Build();
@@ -188,4 +172,25 @@ public sealed class TwitchApiIntegrationTestFixture : IAsyncLifetime
     public KestrelTwitchApiTestServer TestServer { get; } = new();
     public async ValueTask DisposeAsync() => await TestServer.StopAsync(default);
     public async ValueTask InitializeAsync() => await TestServer.StartAsync(default);
+}
+
+public class ErrorLoggingMiddleware : TwitchClient.Middleware
+{
+    protected override async ValueTask<TwitchResponse<TResponseContent>> SendAsync<TResponseContent>(
+        Func<ITwitchRequestDependencyScope, CancellationToken, ValueTask<TwitchResponse<TResponseContent>>> send,
+        ITwitchRequestDependencyScope scope,
+        CancellationToken ct)
+    {
+        TwitchResponse<TResponseContent> response = await send(scope, ct);
+        if (response.Error is not null)
+        {
+            string id = Guid.CreateVersion7().ToString();
+            TestContext.Current.AddAttachment($"TwitchClientError-{id}",
+                $"""
+                Type: {response.Error.GetType()}
+                Message: {response.Error.Message}
+                """);
+        }
+        return response;
+    }
 }

@@ -1,4 +1,5 @@
-﻿using TwitchySharp.Api.Helix.Extensions;
+﻿using System.Net;
+using TwitchySharp.Api.Helix.Extensions;
 using TwitchySharp.Tests.E2E;
 
 namespace TwitchySharp.Api.Tests.E2E.Tests.Helix.Extensions;
@@ -22,6 +23,9 @@ public class Test_GetReleasedExtensions(TwitchClientFixture fixture)
             ExtensionId = extensionConfig.ExtensionId
         };
 
-        await _fixture.GetTwitchApiClient().SendAsync(request, TestName, TestContext.Current.CancellationToken);
+        TwitchResponse<GetReleasedExtensionsResponseContent> response = await _fixture.GetTwitchApiClient().SendAsync(request, TestName, TestContext.Current.CancellationToken);
+
+        Assert.SkipWhen(response.Error is UnexpectedHttpStatusCodeError e && e.StatusCode == HttpStatusCode.NotFound, "The extension was not found or is not released.");
+        Assert.Null(response.Error);
     }
 }
