@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using TwitchySharp.Infrastructure.Functional;
 using TwitchySharp.Tests.Unit.Toolkit;
 
 namespace TwitchySharp.Api.Tests.Unit.Client.RateLimiting;
@@ -30,7 +31,11 @@ public class Test_WithRateLimiting
             Identity = new(new("default"))
         };
 
-        public override Func<Stream, CancellationToken, ValueTask<object>>? ConvertResponseContent { get; init; } = (_, _) => ValueTask.FromResult(new object());
+        public override ValueTask<TwitchResponse<object>> CreateResponse(HttpResponseMessage response, CancellationToken ct)
+        {
+            using HttpResponseMessage r = response;
+            return ValueTask.FromResult(new TwitchResponse<object>(new object()));
+        }
     }
 
     private static TwitchClient CreateStubClient(TwitchRateLimitDetails? rateLimitDetails = null)
@@ -47,13 +52,13 @@ public class Test_WithRateLimiting
     private record TestRateLimitCache : IRequestDependencyCache<ClientId, TwitchRateLimitDetails?>
     {
         public Func<ClientId, CancellationToken, ValueTask<TwitchRateLimitDetails?>> Get { get; init; } = (_, _) => ValueTask.FromResult<TwitchRateLimitDetails?>(null);
-        public Func<ClientId, TwitchRateLimitDetails?, CancellationToken, ValueTask<IRequestDependencyCache<ClientId, TwitchRateLimitDetails?>>> Set
+        public Func<ClientId, TwitchRateLimitDetails?, CancellationToken, ValueTask> Set
         {
-            get => field ??= (_, _, _) => ValueTask.FromResult<IRequestDependencyCache<ClientId, TwitchRateLimitDetails?>>(this);
+            get => field ??= (_, _, _) => ValueTask.CompletedTask;
             init;
         }
         ValueTask<TwitchRateLimitDetails?> IRequestDependencyCache<ClientId, TwitchRateLimitDetails?>.GetOrDefault(ClientId clientId, CancellationToken ct) => Get(clientId, ct);
-        ValueTask<IRequestDependencyCache<ClientId, TwitchRateLimitDetails?>> IRequestDependencyCache<ClientId, TwitchRateLimitDetails?>.Set(ClientId clientId, TwitchRateLimitDetails? details, CancellationToken ct) => Set(clientId, details, ct);
+        ValueTask IRequestDependencyCache<ClientId, TwitchRateLimitDetails?>.Set(ClientId clientId, TwitchRateLimitDetails? details, CancellationToken ct) => Set(clientId, details, ct);
     }
 
     [Fact]

@@ -1,0 +1,22 @@
+{
+  "$comment": "Shared Stryker.NET settings. Source project and unit test project are passed per run (see .github/workflows/mutation.yml for the source->test mapping). Unit tests only; never point at tests/E2E or tests/Integration.",
+  "stryker-config": {
+    "reporters": ["progress", "html", "json"],
+    "thresholds": {
+      "high": 80,
+      "low": 60,
+      "break": 0
+    },
+    "mutation-level": "Standard",
+    "test-runner": "mtp",
+    "mutate": [
+      "!**/obj/**",
+      "!**/*.g.cs",
+      "!**/*.Generated.cs",
+      "!**/*.generated.cs",
+      "!**/*.designer.cs",
+      "!**/*AssemblyInfo.cs",
+      "!**/GlobalUsings.cs"
+    ]
+  }
+}

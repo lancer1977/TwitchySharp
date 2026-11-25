@@ -7,12 +7,25 @@ namespace TwitchySharp.Api.Authentication;
 /// </summary>
 public static class UserAccessTokenResolution
 {
+    /// <summary>
+    /// A resolver for <see cref="ClientId"/> was not configured on the <see cref="TwitchClient"/>.
+    /// </summary>
+    public record MissingClientIdError()
+        : Error($"{nameof(AccessTokenDetails.User)} missing required {nameof(ClientId)} when attempting refresh.");
+
+    /// <summary>
+    /// The <see cref="AccessTokenDetails.User.RefreshToken"/> was <see langword="null"/> and the access token was expired.
+    /// </summary>
+    public record MissingRefreshTokenError()
+        : Error($"{nameof(AccessTokenDetails.User)} missing required {nameof(Authentication.RefreshToken)} when attempting refresh.");
+
     private static async ValueTask<Result<AccessTokenDetails.User>> RefreshToken(
         this ITwitchClient twitchClient,
         ClientId clientId,
         ClientSecret clientSecret,
         UserId userId,
         RefreshToken refreshToken,
+        DateTimeOffset now,
         CancellationToken ct
         )
     {
@@ -23,32 +36,25 @@ public static class UserAccessTokenResolution
             RefreshToken = refreshToken
         };
 
-        try
-        {
-            TwitchResponse<AccessTokenRefreshResponseContent> response = await twitchClient.SendAsync(request, ct);
-            return response.Content.ToAccessTokenDetails(
-                clientId,
-                userId,
-                DateTimeOffset.Now
-                );
-        }
-        catch (Exception ex)
-        {
-            return new ExceptionError(ex);
-        }
+        TwitchResponse<AccessTokenRefreshResponseContent> response = await twitchClient.SendAsync(request, ct);
+        return response.Match(
+            content => content.ToAccessTokenDetails(clientId, userId, now),
+            error => new Result<AccessTokenDetails.User>(error)
+            );
     }
 
     private static async ValueTask<Result<AccessTokenDetails.User>> RefreshToken(
         this ITwitchClient client,
         AccessTokenDetails.User expiredDetails,
         ClientSecret clientSecret,
+        DateTimeOffset now,
         CancellationToken ct
         )
         => expiredDetails.Identity.ClientId is not ClientId clientId
-            ? (Result<AccessTokenDetails.User>)new Error($"{nameof(AccessTokenDetails.User)} missing required {nameof(ClientId)} when attempting refresh.")
+            ? (Result<AccessTokenDetails.User>)new MissingClientIdError()
             : expiredDetails.RefreshToken is not RefreshToken refreshToken
-            ? (Result<AccessTokenDetails.User>)new Error($"{nameof(AccessTokenDetails.User)} missing required {nameof(Authentication.RefreshToken)} when attempting refresh.")
-            : await client.RefreshToken(clientId, clientSecret, expiredDetails.Identity.UserId, refreshToken, ct);
+            ? (Result<AccessTokenDetails.User>)new MissingRefreshTokenError()
+            : await client.RefreshToken(clientId, clientSecret, expiredDetails.Identity.UserId, refreshToken, now, ct);
 
     private static ResolveRequestDependency<AccessTokenDetails.User?> GetFromCache(
         IRequestDependencyCache<TwitchIdentity.User, AccessTokenDetails.User> cache
@@ -66,7 +72,7 @@ public static class UserAccessTokenResolution
                 ? ValueTask.FromResult<Result<AccessTokenDetails.User?>>(details)
                 : scope.ResolveRequired<ITwitchClient>(ct)
                     .BindAsync(twitchClient => scope.ResolveRequired<ClientSecret?>(ct)
-                    .BindAsync(clientSecret => twitchClient.RefreshToken(details, clientSecret!.Value, ct).MapAsync<AccessTokenDetails.User, AccessTokenDetails.User?>(details => details))));
+                    .BindAsync(clientSecret => twitchClient.RefreshToken(details, clientSecret!.Value, getNow(), ct).MapAsync<AccessTokenDetails.User, AccessTokenDetails.User?>(details => details))));
 
     /// <summary>
     /// Configure a <see cref="TwitchClient"/> to resolve <see cref="UserAccessToken"/>s

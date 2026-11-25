@@ -20,6 +20,11 @@ public class Test_GetExtensionLiveChannels(TwitchClientFixture fixture)
             ExtensionId = extensionConfig.ExtensionId
         };
 
-        await _fixture.GetTwitchApiClient().SendAsync(request, TestName, TestContext.Current.CancellationToken);
+        TwitchResponse<GetExtensionLiveChannelsResponseContent> response = await _fixture.GetTwitchApiClient().SendAsync(request, TestName, TestContext.Current.CancellationToken);
+
+        Assert.Null(response.Error);
+        Assert.NotNull(response.Content);
+
+        Assert.SkipWhen(response.Content.Data.Length == 0, "The extension was not found or is not being used on any live channels.");
     }
 }

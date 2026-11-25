@@ -93,6 +93,8 @@ public readonly partial record struct EventSubSubscriptionTypeName(string Value)
     public static EventSubSubscriptionTypeName ChannelPointsCustomRewardRedemptionAdd { get; } = new("channel.channel_points_custom_reward_redemption.add");
     /// <inheritdoc cref="EventSubSubscriptionType.ChannelPointsCustomRewardRedemptionUpdate"/>
     public static EventSubSubscriptionTypeName ChannelPointsCustomRewardRedemptionUpdate { get; } = new("channel.channel_points_custom_reward_redemption.update");
+    /// <inheritdoc cref="EventSubSubscriptionType.ChannelCustomPowerUpRedemptionAdd"/>
+    public static EventSubSubscriptionTypeName ChannelCustomPowerUpRedemptionAdd { get; } = new("channel.custom_power_up_redemption.add");
     /// <inheritdoc cref="EventSubSubscriptionType.ChannelPollBegin"/>
     public static EventSubSubscriptionTypeName ChannelPollBegin { get; } = new("channel.poll.begin");
     /// <inheritdoc cref="EventSubSubscriptionType.ChannelPollProgress"/>
@@ -111,9 +113,9 @@ public readonly partial record struct EventSubSubscriptionTypeName(string Value)
     public static EventSubSubscriptionTypeName ChannelSuspiciousUserMessage { get; } = new("channel.suspicious_user.message");
     /// <inheritdoc cref="EventSubSubscriptionType.ChannelSuspiciousUserUpdate"/>
     public static EventSubSubscriptionTypeName ChannelSuspiciousUserUpdate { get; } = new("channel.suspicious_user.update");
-    /// <inheritdoc cref="EventSubSubscriptionType.ChannelVipAdd"/>
+    /// <inheritdoc cref="EventSubSubscriptionType.ChannelVIPAdd"/>
     public static EventSubSubscriptionTypeName ChannelVipAdd { get; } = new("channel.vip.add");
-    /// <inheritdoc cref="EventSubSubscriptionType.ChannelVipRemove"/>
+    /// <inheritdoc cref="EventSubSubscriptionType.ChannelVIPRemove"/>
     public static EventSubSubscriptionTypeName ChannelVipRemove { get; } = new("channel.vip.remove");
     /// <inheritdoc cref="EventSubSubscriptionType.ChannelWarningAcknowledgement"/>
     public static EventSubSubscriptionTypeName ChannelWarningAcknowledgement { get; } = new("channel.warning.acknowledge");

@@ -9,7 +9,7 @@ public class IanaTimeZoneJsonConverterDataset
     private static IEnumerable<(string Windows, string Iana)> WindowsIanaMapping =>
         [
             new("Eastern Standard Time", "America/New_York"),
-            new("Argentina Standard Time", "America/Buenos_Aires"),
+            new("Argentina Standard Time", "America/Argentina/Buenos_Aires"),
             new("China Standard Time", "Asia/Shanghai"),
             new("UTC", "Etc/UTC")
         ];

@@ -9,10 +9,13 @@ namespace TwitchySharp.Api.Authentication;
 /// See <see href="https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#authorization-code-grant-flow">Authorization Code Grant Flow</see> for more information.
 /// </remarks>
 public record AuthorizationCodeRequest
-    : TwitchAuthorizationRequest<AuthorizationCodeResponseContent>
+    : TwitchAuthenticationRequest<AuthorizationCodeResponseContent>
 {
+    /// <inheritdoc/>
     protected override string Path => "/token";
+    /// <inheritdoc/>
     public override HttpMethod Method => HttpMethod.Post;
+    /// <inheritdoc/>
     public override HttpContent? Content
         => new FormUrlEncodedContent(new Dictionary<string, string>
         {

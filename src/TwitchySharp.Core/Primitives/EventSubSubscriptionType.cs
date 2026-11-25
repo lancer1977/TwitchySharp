@@ -3,8 +3,8 @@
 /// Contains static definitions of Twitch <see href="https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types">EventSub subscription types</see>.
 /// You can also create your own subscription type using the public constructor (this may be useful if Twitch adds a new type that isn't available as a static definition yet).
 /// </summary>
-/// <param name="type">The name of the type.</param>
-/// <param name="version">The version of the type.</param>
+/// <param name="Type">The name of the type.</param>
+/// <param name="Version">The version of the type.</param>
 public record EventSubSubscriptionType(
     EventSubSubscriptionTypeName Type,
     EventSubSubscriptionTypeVersion Version
@@ -257,6 +257,14 @@ public record EventSubSubscriptionType(
     /// A redemption of a channel points custom reward has been updated for the specified channel.
     /// </summary>
     public static EventSubSubscriptionType ChannelPointsCustomRewardRedemptionUpdate { get; } = new(EventSubSubscriptionTypeName.ChannelPointsCustomRewardRedemptionUpdate, EventSubSubscriptionTypeVersion.Version1);
+
+    /// <summary>
+    /// A viewer has redeemed a custom Power-up on the specified channel.
+    /// </summary>
+    /// <remarks>
+    /// See <see href="https://dev.twitch.tv/docs/eventsub/eventsub-subscription-types/#channelcustom_power_up_redemptionadd">channel.custom_power_up_redemption.add</see> for more information.
+    /// </remarks>
+    public static EventSubSubscriptionType ChannelCustomPowerUpRedemptionAdd { get; } = new(EventSubSubscriptionTypeName.ChannelCustomPowerUpRedemptionAdd, EventSubSubscriptionTypeVersion.Version1);
 
     /// <summary>
     /// A poll started on a specified channel.
