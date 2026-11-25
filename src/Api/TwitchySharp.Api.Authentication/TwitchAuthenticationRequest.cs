@@ -3,7 +3,7 @@
 /// Base class for requests using the <see href="https://dev.twitch.tv/docs/authentication/">Twitch Authentication API</see>.
 /// </summary>
 /// <typeparam name="TResponseContent"><inheritdoc/></typeparam>
-public abstract record TwitchAuthorizationRequest<TResponseContent>
+public abstract record TwitchAuthenticationRequest<TResponseContent>
     : TwitchRequest<TResponseContent>
 {
     /// <summary>
@@ -34,6 +34,8 @@ public abstract record TwitchAuthorizationRequest<TResponseContent>
     /// The request query parameters, if any.
     /// </summary>
     protected virtual HttpQueryParameters? QueryParameters { get; }
+
+    /// <inheritdoc/>
     public override Uri RequestUri => new UriBuilder()
     {
         Scheme = "https",
