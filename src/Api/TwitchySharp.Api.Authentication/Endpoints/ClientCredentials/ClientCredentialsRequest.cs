@@ -6,10 +6,13 @@
 /// Uses the <see href="https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#client-credentials-grant-flow">client credentials grant flow</see>.
 /// </remarks>
 public record ClientCredentialsRequest
-    : TwitchAuthorizationRequest<ClientCredentialsResponseContent>
+    : TwitchAuthenticationRequest<ClientCredentialsResponseContent>
 {
+    /// <inheritdoc/>
     public override HttpMethod Method => HttpMethod.Post;
+    /// <inheritdoc/>
     protected override string Path => "/token";
+    /// <inheritdoc/>
     public override HttpContent? Content
         => new FormUrlEncodedContent(new Dictionary<string, string>
         {

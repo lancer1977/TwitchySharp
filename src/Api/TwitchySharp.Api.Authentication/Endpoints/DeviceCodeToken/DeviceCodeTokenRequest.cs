@@ -3,10 +3,13 @@ namespace TwitchySharp.Api.Authentication;
 /// Used to get a user access token using the <see href="https://dev.twitch.tv/docs/authentication/getting-tokens-oauth/#device-code-grant-flow">device code grant flow</see>.
 /// </summary>
 public record DeviceCodeTokenRequest
-    : TwitchAuthorizationRequest<DeviceCodeTokenResponseContent>
+    : TwitchAuthenticationRequest<DeviceCodeTokenResponseContent>
 {
+    /// <inheritdoc/>
     protected override string Path => "/token";
+    /// <inheritdoc/>
     public override HttpMethod Method => HttpMethod.Post;
+    /// <inheritdoc/>
     public override HttpContent? Content
         => new FormUrlEncodedContent(new Dictionary<string, string>
         {

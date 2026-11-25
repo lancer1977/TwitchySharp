@@ -10,10 +10,12 @@ namespace TwitchySharp.Api.Authentication;
 /// See <see href="https://dev.twitch.tv/docs/authentication/getting-tokens-oidc/#getting-claims-information-from-an-access-token">getting claims information from an access token</see> for more information.
 /// </remarks>
 public record UserInfoRequest
-    : TwitchAuthorizationRequest<TwitchOidc>,
+    : TwitchAuthenticationRequest<TwitchOidc>,
     IAuthenticatedTwitchRequest<ITwitchRequestAuthenticationContext<TwitchIdentity>>
 {
+    /// <inheritdoc/>
     protected override string Path => "/userinfo";
+    /// <inheritdoc/>
     public override HttpMethod Method => HttpMethod.Get;
 
     /// <summary>
@@ -33,6 +35,7 @@ public record UserInfoRequest
     /// </remarks>
     public UserAccessToken? AccessToken { get; init; }
 
+    /// <inheritdoc/>
     public ITwitchRequestAuthenticationContext<TwitchIdentity> AuthenticationContext =>
         UserId.HasValue
         ? new UserWithScopesAuthenticationContext()

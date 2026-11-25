@@ -6,8 +6,10 @@ namespace TwitchySharp.Api.Authentication;
 /// See <see href="https://dev.twitch.tv/docs/authentication/getting-tokens-oidc/#validating-an-id-token">Validating an ID Token</see> for more information.
 /// </remarks>
 public record OidcJwkRequest
-    : TwitchAuthorizationRequest<OidcJwkResponseContent>
+    : TwitchAuthenticationRequest<OidcJwkResponseContent>
 {
+    /// <inheritdoc/>
     protected override string Path => "/keys";
+    /// <inheritdoc/>
     public override HttpMethod Method => HttpMethod.Get;
 }
